@@ -1,24 +1,56 @@
 machine:
-
   timezone:
     America/Chicago # Set the timezone
 
-  # Version of GHC to use
-  ghc:
-    version: 7.8.3
-
 ## Customize dependencies
 dependencies:
+  pre:
+    - mkdir -p ~/opt/bin
+    - mkdir -p ~/opt/nix-mnt
+    - cd ~/opt/bin
+    - wget http://static.proot.me/proot-x86_64
+    - chmod u+x proot-x86_64
+    - cd ~/opt/nix-mnt
+    - wget http://hydra.nixos.org/build/17897595/download/1/nix-1.8-x86_64-linux.tar.bz2
+    - tar xvjf nix-*.bz2
+
   override:
-    - cabal update
-    - cabal sandbox init
-    - cabal install --only-dependencies --enable-tests
+    - ~/opt/bin/proot-x86_64 -b ~/opt/nix-mnt/nix-1.8-x86_64-linux/:/nix bash
+    - ls /nix
+    - cd /nix
+    - ./install
+    - source ~/.nix-profile/etc/profile.d/nix.sh
+    - cd ~
 
   cache_directories:
-    - ".cabal-sandbox"
-    - "~/.cabal"
+    - "~/opt"
 
 ## Customize test commands
 test:
   override:
-    - cabal test
+    - cat "hi"
+
+# machine:
+
+#   timezone:
+#     America/Chicago # Set the timezone
+
+#   # Version of GHC to use
+#   ghc:
+#     version: 7.8.3
+
+# ## Customize dependencies
+# dependencies:
+#   override:
+#     - cabal update
+#     - cabal sandbox init
+#     - cabal install --only-dependencies --enable-tests
+
+#   cache_directories:
+#     - ".cabal-sandbox"
+#     - "~/.cabal"
+
+# ## Customize test commands
+# test:
+#   override:
+#     - cabal test
