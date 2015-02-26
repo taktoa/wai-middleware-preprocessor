@@ -1,3 +1,19 @@
+-- Preprocessor.hs
+-- Copyright 2015 Remy E. Goldschmidt <taktoa@gmail.com>
+-- This file is part of wai-middleware-preprocessor.
+--    wai-middleware-preprocessor is free software: you can redistribute it and/or modify
+--    it under the terms of the GNU General Public License as published by
+--    the Free Software Foundation, either version 3 of the License, or
+--    (at your option) any later version.
+--
+--    wai-middleware-preprocessor is distributed in the hope that it will be useful,
+--    but WITHOUT ANY WARRANTY-- without even the implied warranty of
+--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--    GNU General Public License for more details.
+--
+--    You should have received a copy of the GNU General Public License
+--    along with wai-middleware-preprocessor. If not, see <http://www.gnu.org/licenses/>.
+
 -- | Serve files subject to a preprocessing function. This library makes it
 --   easy to integrate Javascript or CSS preprocessors into a WAI application
 --   that will compile the relevant files at runtime
@@ -5,7 +21,7 @@ module Network.Wai.Middleware.Preprocessor
     ( -- * Middleware
       ppMiddleware, ppFileMiddleware
     , -- * Preprocessors
-      Preprocessor, preprocessor
+      Preprocessor, preprocessor, runPreprocessor, preprocess
     , -- * Policies
       Policy, (<|>), (>->), policy, predicate
     , addBase, addSlash, contains, hasPrefix, hasSuffix, noDots, isNotAbsolute, only
@@ -16,6 +32,7 @@ module Network.Wai.Middleware.Preprocessor
 import           Control.Monad                 (when)
 import           Control.Monad.Trans           (liftIO)
 import           Data.Functor                  ((<$>))
+import           Data.List.Split               (splitOn)
 import           Data.Text                     (Text)
 import qualified Data.Text                     as T
 import qualified Data.Text.IO                  as TIO
@@ -64,7 +81,7 @@ maybeRead fp = do
 
 -- | Replace the file extension of a 'FilePath' with a given extension
 replaceExt :: Extension -> FilePath -> FilePath
-replaceExt ext fp = concat (init (extensions fp) ++ [fromExt ext])
+replaceExt ext fp = concatMap (++ ".") (init (extensions fp)) ++ fromExt ext
 
 
 -- | Run a preprocessor on incoming requests
@@ -106,8 +123,4 @@ ppFileMiddleware pol pp = ppMiddleware pp . staticPolicy pol
 
 -- | Split a 'FilePath' into period-delimited sections
 extensions :: FilePath -> [String]
-extensions [] = []
-extensions fp = case dropWhile (/= '.') fp of
-                 [] -> []
-                 s  -> let ext = tail s
-                       in ext : extensions ext
+extensions = splitOn "."
