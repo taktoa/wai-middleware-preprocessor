@@ -15,5 +15,5 @@ steps:
 columns: 80
 
 language_extensions:
-  - Safe
   - OverloadedStrings
+  - TupleSections
