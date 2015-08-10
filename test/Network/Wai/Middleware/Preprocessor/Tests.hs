@@ -1,3 +1,7 @@
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleInstances  #-}
+{-# LANGUAGE StandaloneDeriving #-}
+
 -- Tests.hs
 -- Copyright 2015 Remy E. Goldschmidt <taktoa@gmail.com>
 -- This file is part of wai-middleware-preprocessor.
@@ -17,6 +21,8 @@
 module Network.Wai.Middleware.Preprocessor.Tests where
 
 import           Distribution.TestSuite
+import           Network.Wai.Middleware.Preprocessor
+import           Test.QuickCheck
 
 tests :: IO [Test]
 tests = return []

@@ -21,12 +21,14 @@ module Network.Wai.Middleware.Preprocessor
     ( -- * Middleware
       ppMiddleware, ppFileMiddleware
     , -- * Preprocessors
-      Preprocessor, preprocessor, runPreprocessor, preprocess
+      Preprocessor, preprocessor
     , -- * Policies
       Policy, (<|>), (>->), policy, predicate
     , addBase, addSlash, contains, hasPrefix, hasSuffix, noDots, isNotAbsolute, only
     , -- * Utilities
       tryPolicy
+    , -- * Miscellaneous
+      maybeRead, replaceExt, extensions
     ) where
 
 import           Control.Monad                 (when)
@@ -39,7 +41,6 @@ import qualified Data.Text.IO                  as TIO
 import           Network.Wai
 import           Network.Wai.Middleware.Static
 import           System.Directory              (doesFileExist)
-
 -- | Newtype wrapper for 'String's that represent file extensions
 newtype Extension = Extension { fromExt :: String -- ^ Extract extension
                               }
@@ -81,7 +82,11 @@ maybeRead fp = do
 
 -- | Replace the file extension of a 'FilePath' with a given extension
 replaceExt :: Extension -> FilePath -> FilePath
-replaceExt ext fp = concatMap (++ ".") (init (extensions fp)) ++ fromExt ext
+replaceExt ext = replaceExt' "." (fromExt ext)
+
+-- | Polymorphic version of replaceExt
+replaceExt' :: (Eq a) => [a] -> [a] -> [a] -> [a]
+replaceExt' sep ext fp = concatMap (++ sep) (init (extensions' sep fp)) ++ ext
 
 
 -- | Run a preprocessor on incoming requests
@@ -123,4 +128,8 @@ ppFileMiddleware pol pp = ppMiddleware pp . staticPolicy pol
 
 -- | Split a 'FilePath' into period-delimited sections
 extensions :: FilePath -> [String]
-extensions = splitOn "."
+extensions = extensions' "."
+
+-- | Polymorphic version of extensions
+extensions' :: (Eq a) => [a] -> [a] -> [[a]]
+extensions' = splitOn
